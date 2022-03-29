@@ -174,43 +174,15 @@ void setup() {
   pinMode(ENA, OUTPUT);
   pinMode(ENB, OUTPUT);
 
-  //milliNew = millis();
-
-  //delay(5000);
-  //set_point = imu_6050();
+  milliNew = millis();
 }
 
 void loop() {
-  //  // put your main code here, to run repeatedly:
-  //  String state = lineState();
-  //  Serial.println(state);
-  //  if (state == "STRAIGHT") {
-  //    forward();
-  //  } else if (state == "LEFT") {
-  //    delay(250);
-  //    left();
-  //    delay(750);
-  //  }
-  //  else if (state == "RIGHT") {
-  //    delay(250);
-  //    right();
-  //    delay(750);
-  //  }
-  //  else if (state == "NONE") {
-  //    stopp();
-  //  }
-  //  else if (state == "offLEFT") {
-  //    left();
-  //    delay(100);
-  //  }
-  //  else if (state == "offRIGHT") {
-  //    right();
-  //    delay(100);
-  //  }
-  forward();
-  if(digitalRead(BTN))
-  {
-    set_point = imu_6050();
+  if (tryNumber == 1) { //check for the try number, then run the appropriate code
+    firstTry();
+  }
+  else {
+    secondTry();
   }
 }
 
@@ -277,24 +249,11 @@ void left()
 void forward()
 {
   angle = imu_6050();
-  float correction = 0;
-  if (millis() > 20000)
-  {
-    digitalWrite(IN1, LOW);
-    digitalWrite(IN2, HIGH);
-    digitalWrite(IN3, HIGH);
-    digitalWrite(IN4, LOW);
-    correction = PID_CONTROL(angle, set_point);
-  }
-  else
-  {
-    set_point = angle;
-    milliNew = millis();
-  }
   float rcorrection = min(abs(correction / rscale), spd) * (correction / abs(correction ? correction : 1));
   float lcorrection = min(abs(correction / lscale), spd) * (correction / abs(correction ? correction : 1));
   Serial.print("Set Point: "); Serial.print(set_point);
-  Serial.print(", Correction: "); Serial.print(correction);
+  Serial.print(", Right Correction: "); Serial.print(rcorrection);
+  Serial.print(", Left Correction: "); Serial.print(lcorrection);
   Serial.print(", Angle: "); Serial.print(angle);
   Serial.print(", Right Speed: "); Serial.print(spd - rcorrection);
   Serial.print(", Left Speed: "); Serial.print(spd + lcorrection);
