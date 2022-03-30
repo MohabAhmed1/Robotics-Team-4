@@ -64,6 +64,8 @@ float angle;
 float desired_angle;
 float set_point = 0;
 
+int milli;
+
 float rscale = 4;
 float lscale = 4;
 float spd = 72;
@@ -207,6 +209,7 @@ void turnRight()
     right();
     angle = imu_6050();
   }
+  milliNew = millis();
   stopp();
 }
 
@@ -223,6 +226,7 @@ void turnLeft()
     left();
     angle = imu_6050();
   }
+  milliNew = millis();
   stopp();
 }
 
@@ -410,13 +414,16 @@ float PID_CONTROL(float yawActual, float yawTarget)
   milliNew = millis();
   dt = (milliNew - milliOld) / 1000.0;
   yawErrorOld = yawError;
-  yawError = yawTarget - yawActual;
+  if(cycle(yawTarget, yawActual))
+        yawError = 360 - yawTarget + yawActual;
+    else
+        yawError = yawTarget - yawActual;
   yawErrorChange = yawError - yawErrorOld;
   yawErrorSlope = yawErrorChange / dt;
   yawErrorArea = yawErrorArea + yawError * dt;
 
   correction = kP * yawError + kD * yawErrorSlope + kI * yawErrorArea;
-
+ 
   return correction;
 }
 
@@ -424,34 +431,44 @@ void firstTry() {
   String state = lineState();
   if (state ==  "offLEFT") {
     //((correct course to the right))
+    right();
   }
   else if (state ==  "offRIGHT") {
     //((correct course to the left))
+    left();
   }
   else if (state ==  "NONE") {
     //((move forward to check for special cases))
+    milli = millis(); while(millis() < milli + 1000) forward();
     String state2 = lineState();
     if (state2 == "NONE") { //Dead End
       //((turn back because dead end reached))
+      turnRight();
+      turnRight();
       path += "B";
     }
     else if (state2 == "STRAIGHT") { //Split Line
       //((keep moving forward as line is only split and will continue))
+      forward();
     }
   }
   else if (state ==  "LEFTandRIGHT") {
     //((move a little bit forward to check for special cases))
+    milli = millis(); while(millis() < milli + 1000) forward();
     String state2 = lineState();
     if (state2 == "NONE") { //T-Intersection
       //((turn left as priority is to the left way))
+      turnLeft();
       path += "L";
     }
     else if (state2 == "STRAIGHT") { //Cross Intersection
       //((turn left as priority is to the left way))
+      turnLeft();
       path += "L";
     }
     else if (state2 == "LEFTandRIGHT") { //Solid Rectangle (end of the maze)
       //((stop all movements))
+      stopp();
       //first try finished, now to the second try
       tryNumber = 2;
       int len = path.length() + 1;
@@ -467,30 +484,37 @@ void firstTry() {
   }
   else if (state ==  "LEFT") {
     //((move a little bit forward to check for special cases))
+    milli = millis(); while(millis() < milli + 1000) forward();
     String state2 = lineState();
     if (state2 == "NONE") { //90-Degrees Turn
       //((turn left as there are no other way))
+      turnLeft();
       path += "L";
     }
     else if (state2 == "STRAIGHT") { //T-Intersection
       //((turn left as priority is to the left way))
+      turnLeft();
       path += "L";
     }
   }
   else if (state ==  "RIGHT") {
     //((move a little bit forward to check for special cases))
+    milli = millis(); while(millis() < milli + 1000) forward();
     String state2 = lineState();
     if (state2 == "NONE") { //90-Degrees Turn
       //((turn right as there are no other way))
+      turnRight();
       path += "R";
     }
     else if (state2 == "STRAIGHT") { //T-Intersection
       //((keep moving forward as priority is to the left way))
+      turnRight();
       path += "S";
     }
   }
   else if (state ==  "STRAIGHT") {
     //((keep moving forward))
+    forward();
   }
 }
 
@@ -498,32 +522,37 @@ void secondTry() {
   String state = lineState();
   if (state ==  "offLEFT") {
     //((correct course to the right))
+    right();
   }
   else if (state ==  "offRIGHT") {
     //((correct course to the left))
+    left();
   }
   else if (state ==  "NONE") {
     //((keep moving forward as line is only split and will continue))
+    forward();
   }
   else if (state ==  "STRAIGHT") {
     //((keep moving forward))
+    forward();
   }
   else {
     //((move a little bit forward to position the robot in the center of the line after turning))
     char currentMove = simplePath[j];
     if (currentMove == 0) { //if we reached the end of the path array, then the end of the maze is reached
       //((stop all movements))
+      stopp();
     }
     j++;
     switch (currentMove) {
       case 'L':
-
+        turnLeft();
         break;
       case 'R':
-
+        turnRight();
         break;
       case 'S':
-
+        milli = millis(); while(millis() < milli + 1000) forward();
         break;
     }
   }
