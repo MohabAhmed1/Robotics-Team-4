@@ -15,3 +15,5 @@
 -Explain the main idea(LBL=F ,SBL=R ,ect....).
 -Simplification of the path array (First trial).
 -Second trial array(Reverse of the first one).
+
+![image](https://raw.githubusercontent.com/MohabAhmed1/Robotics-Team-4/main/Picture1.jpg)
